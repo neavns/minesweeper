@@ -111,7 +111,7 @@ h1 {
 #shortcuts {
   position: absolute;
   top: 0;
-  left: 2%;
+  left: 1%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -143,7 +143,6 @@ kbd {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 0 5px;
   margin-bottom: 1rem;
 }
 
@@ -175,4 +174,23 @@ kbd {
 .wallhack {
 
   opacity: .8;
+}
+
+.flagged {
+  border-color: #e8d256;
+  background: repeating-linear-gradient(
+    45deg,
+    #ffec7c,
+    #ffec7c 10px,
+    #e8d256 10px,
+    #e8d256 20px
+  );
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.disabled {
+  pointer-events: none;
 }

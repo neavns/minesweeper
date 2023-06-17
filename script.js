@@ -40,6 +40,7 @@ const revealCell = cell => {
   if (cell.isRevealed || cell.isFlagged) return
   _GRID_[`${cell.x}-${cell.y}`].isRevealed = true
   if(cell.isBomb) {
+    clearHelpers()
     revealAll()
     gameOver()
     return
@@ -75,10 +76,13 @@ const updateGrid = () => {
   for(let x = 0; x < _ROWS_; x++) {
     for(let y = 0; y < _COLS_; y++) {
       const { isRevealed, isBomb, adjacentBombs, isFlagged } = _GRID_[toKey(x, y)]
-      const cellElement = document.querySelector(`[data-x="${x}"][data-y="${y}"]`)
+      const cellElement = getCellElement(x, y)
       cellElement.innerText = getCellText({ isRevealed, isBomb, adjacentBombs, isFlagged })
 
       if(isRevealed) {
+        if (isFlagged) {
+          cellElement.classList.add('flagged')
+        }
         if (isBomb) {
           cellElement.classList.add(isBomb ? 'bomb' : '')
         } else {
@@ -143,7 +147,7 @@ const onHover = (cell) => {
     const neighbours = getNeighbours(cell)
     neighbours.forEach(n => {
       const [x, y] = n.split('-')
-      const cellElement = document.querySelector(`[data-x="${x}"][data-y="${y}"]`)
+      const cellElement = getCellElement(x, y)
       !cellElement?.classList.contains('revealed') && cellElement?.classList.add('highlighted')
     })
   }
@@ -194,6 +198,8 @@ const gameOver = (lost = true) => {
   document.querySelector('#emoji').innerText = lost ? '😵' : '🤩'
   document.querySelectorAll('.cell').forEach(cell => cell.removeEventListener('mousedown', toggleEmoji))
   document.querySelectorAll('.cell').forEach(cell => cell.removeEventListener('mouseup', toggleEmoji))
+  document.querySelector('#status').innerText = lost ? '😵 Better luck next time!' : '🤩 Good Game! 🤩'
+  document.querySelector('#grid').classList.add('disabled')
 }
 const checkWin = () => {
   const revealed = Object.values(_GRID_).filter(c => c.isRevealed)
@@ -255,11 +261,12 @@ const getAdjacentBombs = ({ x, y }, bombs) => {
   return neighbours.filter(n => bombs.includes(n)).length
 }
 const getCellText = ({ isRevealed, isBomb, adjacentBombs, isFlagged }) => {
-  if (isFlagged) return '🚩'
+  if (isFlagged && !isRevealed) return '🚩'
   if (!isRevealed) return ''
   if (isBomb) return '💣'
   return adjacentBombs || ''
 }
+const getCellElement = (x, y) => document.querySelector(`[data-x="${x}"][data-y="${y}"]`)
 
 // ########################################
 // START GAME
@@ -273,6 +280,8 @@ const init = () => {
   controls.style.width = document.getElementById('grid').clientWidth + 'px'
   document.querySelector('#mines').innerText = `Mines: ${_BOMBS_}`
   document.querySelectorAll('.d-btn').forEach(d => d.addEventListener('click', setDifficulty))
+  document.querySelector('#status').innerText = ''
+  document.querySelector('#grid').classList.remove('disabled')
 }
 
 init()
