@@ -180,7 +180,7 @@ const enableShortcuts = () => {
     switch (e.key) {
       case 'r': reset(); break;
       case 'f': toggleFlag(); break;
-      case 'q': revealAll(); break;
+      case 'q': revealAll(); gameOver(true); break;
       case 'h': toggleHighlighter(); break;
       case 'w': toggleWallhack(); break;
       default: break;
@@ -213,8 +213,8 @@ const setDifficulty = e => {
   const difficulty = btn.getAttribute('data-difficulty')
   switch (difficulty) {
     case 'easy':
-      _ROWS_ = 9
-      _COLS_ = 9
+      _ROWS_ = 10
+      _COLS_ = 10
       _BOMBS_ = 10
       break
     case 'medium':
