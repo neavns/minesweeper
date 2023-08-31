@@ -95,8 +95,12 @@ const updateGrid = () => {
 const generateBombs = () => {
   let bombs = []
   for (let i = 0; i < _BOMBS_; i++) {
-    const x = Math.floor(Math.random() * _ROWS_)
-    const y = Math.floor(Math.random() * _COLS_)
+    let x = Math.floor(Math.random() * _ROWS_)
+    let y = Math.floor(Math.random() * _COLS_)
+    while(bombs.includes(toKey(x, y))) {
+      x = Math.floor(Math.random() * _ROWS_)
+      y = Math.floor(Math.random() * _COLS_)
+    }
     bombs.push(toKey(x, y))
   }
   return bombs
@@ -203,6 +207,7 @@ const gameOver = (lost = true) => {
 }
 const checkWin = () => {
   const revealed = Object.values(_GRID_).filter(c => c.isRevealed)
+  console.log('revealed', revealed.length, 'expected to win:', _ROWS_ * _COLS_ - _BOMBS_)
   if (revealed.length === _ROWS_ * _COLS_ - _BOMBS_) {
     revealAll()
     gameOver(false)
@@ -215,7 +220,7 @@ const setDifficulty = e => {
     case 'easy':
       _ROWS_ = 10
       _COLS_ = 10
-      _BOMBS_ = 10
+      _BOMBS_ = 20
       break
     case 'medium':
       _ROWS_ = 16
