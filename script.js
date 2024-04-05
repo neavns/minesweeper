@@ -6,6 +6,8 @@ let flagActive = false
 let shortcutsEnabled = false
 let highlighterEnabled = false
 let wallhackEnabled = false
+let isFirstCell = true
+let numberOfFlags = 0
 
 // ########################################
 // MAIN FUNCTIONS
@@ -21,8 +23,8 @@ const createCell = ({ x, y, isBomb = false, isRevealed = false, isFlagged = fals
     adjacentBombs
   };
 }
-const populateGrid = () => {
-  const bombs = generateBombs()
+const populateGrid = (firstCell) => {
+  const bombs = firstCell ? generateBombs(firstCell) : []
   for (let x = 0; x < _ROWS_; x++) {
     for (let y = 0; y < _COLS_; y++) {
       const key = toKey(x, y)
@@ -31,14 +33,22 @@ const populateGrid = () => {
       _GRID_[key] = createCell({ x, y, isBomb, adjacentBombs })
     }
   }
+  console.log(_GRID_)
 }
 const revealCell = cell => {
+  if(isFirstCell) {
+    populateGrid(cell)
+    renderGrid()
+    isFirstCell = false
+  }
+
   if (flagActive) {
     flagCell(cell)
     return
   }
+
   if (cell.isRevealed || cell.isFlagged) return
-  _GRID_[`${cell.x}-${cell.y}`].isRevealed = true
+  _GRID_[toKey(cell.x, cell.y)].isRevealed = true
   if(cell.isBomb) {
     clearHelpers()
     revealAll()
@@ -51,6 +61,7 @@ const revealCell = cell => {
 }
 const renderGrid = () => {
   const grid = document.getElementById('grid')
+  grid.innerHTML = ''
 
   for(let x = 0; x < _ROWS_; x++) {
     const row = document.createElement('div')
@@ -65,6 +76,10 @@ const renderGrid = () => {
       cellElement.onmousedown = toggleEmoji
       cellElement.onmouseup = toggleEmoji
       cellElement.onmouseover = () => onHover(cell)
+      cellElement.oncontextmenu = (e) => {
+        e.preventDefault()
+        flagCell(cell)
+      }
       cellElement.onmouseleave = clearHelpers
       row.appendChild(cellElement)
     }
@@ -80,9 +95,7 @@ const updateGrid = () => {
       cellElement.innerText = getCellText({ isRevealed, isBomb, adjacentBombs, isFlagged })
 
       if(isRevealed) {
-        if (isFlagged) {
-          cellElement.classList.add('flagged')
-        }
+        if (isFlagged) cellElement.classList.add('flagged')
         if (isBomb) {
           cellElement.classList.add(isBomb ? 'bomb' : '')
         } else {
@@ -92,12 +105,21 @@ const updateGrid = () => {
     }
   }
 }
-const generateBombs = () => {
+
+const updateCounter = () => {
+  document.querySelector('#mines').innerText = `${_BOMBS_ - numberOfFlags}`
+}
+const generateBombs = (firstCell) => {
   let bombs = []
   for (let i = 0; i < _BOMBS_; i++) {
     let x = Math.floor(Math.random() * _ROWS_)
     let y = Math.floor(Math.random() * _COLS_)
-    while(bombs.includes(toKey(x, y))) {
+
+    while (
+      bombs.includes(toKey(x, y)) 
+      || (firstCell.x === x && firstCell.y === y) 
+      || getNeighbours({ x: firstCell.x, y: firstCell.y }).includes(toKey(x, y))) 
+    {
       x = Math.floor(Math.random() * _ROWS_)
       y = Math.floor(Math.random() * _COLS_)
     }
@@ -107,9 +129,8 @@ const generateBombs = () => {
 }
 const revealAll = () => {
   for (let x = 0; x < _ROWS_; x++) {
-    for (let y = 0; y < _COLS_; y++) {
+    for (let y = 0; y < _COLS_; y++) 
       _GRID_[toKey(x, y)].isRevealed = true
-    }
   }
   updateGrid()
 }
@@ -194,8 +215,9 @@ const enableShortcuts = () => {
   shortcutsEnabled = true
 }
 const reset = () => {
-  document.getElementById('grid').innerHTML = ''
   document.querySelector('#emoji').innerText = '🙂'
+  numberOfFlags = 0
+  isFirstCell = true
   init()
 }
 const gameOver = (lost = true) => {
@@ -207,7 +229,6 @@ const gameOver = (lost = true) => {
 }
 const checkWin = () => {
   const revealed = Object.values(_GRID_).filter(c => c.isRevealed)
-  console.log('revealed', revealed.length, 'expected to win:', _ROWS_ * _COLS_ - _BOMBS_)
   if (revealed.length === _ROWS_ * _COLS_ - _BOMBS_) {
     revealAll()
     gameOver(false)
@@ -258,7 +279,9 @@ const getNeighbours = ({ x, y }) => {
 }
 const flagCell = cell => {
   if (cell.isRevealed) return
-  _GRID_[`${cell.x}-${cell.y}`].isFlagged = !_GRID_[`${cell.x}-${cell.y}`].isFlagged
+  _GRID_[toKey(cell.x, cell.y)].isFlagged ? numberOfFlags-- : numberOfFlags++
+  _GRID_[toKey(cell.x, cell.y)].isFlagged = !_GRID_[toKey(cell.x, cell.y)].isFlagged
+  updateCounter()
   updateGrid()
 }
 const getAdjacentBombs = ({ x, y }, bombs) => {
@@ -283,7 +306,7 @@ const init = () => {
   enableShortcuts()
   const controls = document.getElementById('controls')
   controls.style.width = document.getElementById('grid').clientWidth + 'px'
-  document.querySelector('#mines').innerText = `Mines: ${_BOMBS_}`
+  document.querySelector('#mines').innerText = `${_BOMBS_}`
   document.querySelectorAll('.d-btn').forEach(d => d.addEventListener('click', setDifficulty))
   document.querySelector('#status').innerText = ''
   document.querySelector('#grid').classList.remove('disabled')

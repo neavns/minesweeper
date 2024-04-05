@@ -13,7 +13,8 @@ h1 {
   color: #fff;
 }
 
-#grid, #controls {
+#grid,
+#controls {
   border: 3px solid #ccc;
   border-right: 3px solid #fff;
   border-bottom: 3px solid #fff;
@@ -151,7 +152,8 @@ kbd {
   transition: all .2s;
 }
 
-.d-btn:active, .d-active {
+.d-btn:active,
+.d-active {
   background: #ccc;
   border-color: transparent;
   transition: all .2s;
@@ -178,13 +180,11 @@ kbd {
 
 .flagged {
   border-color: #e8d256;
-  background: repeating-linear-gradient(
-    45deg,
-    #ffec7c,
-    #ffec7c 10px,
-    #e8d256 10px,
-    #e8d256 20px
-  );
+  background: repeating-linear-gradient(45deg,
+      #ffec7c,
+      #ffec7c 10px,
+      #e8d256 10px,
+      #e8d256 20px);
 }
 
 .mt-1 {
@@ -193,4 +193,12 @@ kbd {
 
 .disabled {
   pointer-events: none;
+}
+
+#mines {
+  font-size: 2rem;
+  font-weight: bold;
+  font-family: monospace;
+  background: #e34747;
+  padding: 2px 10px;
 }
