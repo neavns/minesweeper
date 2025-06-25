@@ -36,7 +36,7 @@ const populateGrid = (firstCell) => {
   console.log(_GRID_)
 }
 const revealCell = cell => {
-  if(isFirstCell) {
+  if (isFirstCell) {
     populateGrid(cell)
     renderGrid()
     isFirstCell = false
@@ -49,7 +49,7 @@ const revealCell = cell => {
 
   if (cell.isRevealed || cell.isFlagged) return
   _GRID_[toKey(cell.x, cell.y)].isRevealed = true
-  if(cell.isBomb) {
+  if (cell.isBomb) {
     clearHelpers()
     revealAll()
     gameOver()
@@ -63,10 +63,10 @@ const renderGrid = () => {
   const grid = document.getElementById('grid')
   grid.innerHTML = ''
 
-  for(let x = 0; x < _ROWS_; x++) {
+  for (let x = 0; x < _ROWS_; x++) {
     const row = document.createElement('div')
     row.classList.add('row')
-    for(let y = 0; y < _COLS_; y++) {
+    for (let y = 0; y < _COLS_; y++) {
       const cell = _GRID_[toKey(x, y)]
       const cellElement = document.createElement('div')
       cellElement.classList.add('cell')
@@ -88,13 +88,13 @@ const renderGrid = () => {
   }
 }
 const updateGrid = () => {
-  for(let x = 0; x < _ROWS_; x++) {
-    for(let y = 0; y < _COLS_; y++) {
+  for (let x = 0; x < _ROWS_; x++) {
+    for (let y = 0; y < _COLS_; y++) {
       const { isRevealed, isBomb, adjacentBombs, isFlagged } = _GRID_[toKey(x, y)]
       const cellElement = getCellElement(x, y)
       cellElement.innerText = getCellText({ isRevealed, isBomb, adjacentBombs, isFlagged })
 
-      if(isRevealed) {
+      if (isRevealed) {
         if (isFlagged) cellElement.classList.add('flagged')
         if (isBomb) {
           cellElement.classList.add(isBomb ? 'bomb' : '')
@@ -116,10 +116,9 @@ const generateBombs = (firstCell) => {
     let y = Math.floor(Math.random() * _COLS_)
 
     while (
-      bombs.includes(toKey(x, y)) 
-      || (firstCell.x === x && firstCell.y === y) 
-      || getNeighbours({ x: firstCell.x, y: firstCell.y }).includes(toKey(x, y))) 
-    {
+      bombs.includes(toKey(x, y))
+      || (firstCell.x === x && firstCell.y === y)
+      || getNeighbours({ x: firstCell.x, y: firstCell.y }).includes(toKey(x, y))) {
       x = Math.floor(Math.random() * _ROWS_)
       y = Math.floor(Math.random() * _COLS_)
     }
@@ -129,20 +128,33 @@ const generateBombs = (firstCell) => {
 }
 const revealAll = () => {
   for (let x = 0; x < _ROWS_; x++) {
-    for (let y = 0; y < _COLS_; y++) 
+    for (let y = 0; y < _COLS_; y++)
       _GRID_[toKey(x, y)].isRevealed = true
   }
   updateGrid()
 }
-const propagateReveal = (cell) => {
-  if (cell.adjacentBombs > 0) return
-  const neighbours = getNeighbours(cell)
-  neighbours.forEach(n => {
-    const neighbour = _GRID_[n]
-    if (!neighbour || neighbour.isRevealed || neighbour.isBomb || neighbour.isFlagged) return
-    revealCell(neighbour)
-    propagateReveal(neighbour)
-  })
+const propagateReveal = (startCell) => {
+  const queue = [startCell]
+  const revealed = new Set()
+
+  while (queue.length > 0) {
+    const cell = queue.shift()
+    const key = toKey(cell.x, cell.y)
+
+    if (revealed.has(key) || cell.adjacentBombs > 0) continue
+    revealed.add(key)
+
+    const neighbours = getNeighbours(cell)
+    neighbours.forEach(n => {
+      const neighbour = _GRID_[n]
+      if (!neighbour || neighbour.isRevealed || neighbour.isBomb || neighbour.isFlagged) return
+
+      _GRID_[n].isRevealed = true
+      if (neighbour.adjacentBombs === 0) {
+        queue.push(neighbour)
+      }
+    })
+  }
 }
 
 // ########################################
@@ -177,7 +189,7 @@ const onHover = (cell) => {
     })
   }
 
-  if(wallhackEnabled) {
+  if (wallhackEnabled) {
     const cellElement = document.querySelector(`[data-x="${cell.x}"][data-y="${cell.y}"]`)
     cellElement?.classList.add('wallhack')
     document.querySelector('.wallhack').innerText = getCellText({ ...cell, isRevealed: true })
@@ -200,7 +212,7 @@ const clearHelpers = () => {
   })
 }
 const enableShortcuts = () => {
-  if(shortcutsEnabled) return 
+  if (shortcutsEnabled) return
   document.addEventListener('keydown', e => {
     switch (e.key) {
       case 'r': reset(); break;
